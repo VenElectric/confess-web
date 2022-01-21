@@ -1,10 +1,28 @@
 <template>
-  <div id="nav">
-    <router-link to="/">Home</router-link> |
-    <router-link to="/about">About</router-link>
+  <div id="nav" v-if="logged_in">
+    <router-link to="/">Main</router-link> |
+    <router-link to="/myconfessions">My Confessions</router-link> |
+    <router-link to="/createnew">Create New</router-link>
+  </div>
+  <div id="nav" v-if="!logged_in">
+    <router-link to="/">Main</router-link> |
+    <router-link to="/createnew">Create New</router-link> |
+    <router-link to="/login">Login</router-link>
   </div>
   <router-view />
 </template>
+
+<script lang="ts">
+import { defineComponent } from "vue";
+
+export default defineComponent({
+  data() {
+    return {
+      logged_in: true,
+    };
+  },
+});
+</script>
 
 <style lang="scss">
 #app {
