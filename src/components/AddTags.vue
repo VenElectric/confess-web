@@ -32,7 +32,10 @@ export default defineComponent({
       context.emit("remove", index);
     }
 
-    function remove_last() {
+    function remove_last(event: any) {
+      if (event.target.value.length > 0) {
+        return;
+      }
       let index = props.tagItems.length - 1;
       remove_tag(index);
     }
@@ -45,7 +48,7 @@ export default defineComponent({
 <style scoped>
 .tag-input {
   border: 1px solid rgba(143, 138, 138, 0.979);
-  width: 80%;
+  width: 100%;
   font-size: 0.9em;
   box-sizing: border-box;
   padding: 0 10px;
@@ -53,14 +56,16 @@ export default defineComponent({
   flex-flow: wrap;
   align-items: center;
   padding: 0.5em;
+  background: rgb(48, 61, 83);
 }
 .tag-text {
   border: none;
   outline: none;
-  width: 70%;
+  width: 90%;
   font-size: 0.9em;
   background: none;
   float: left;
+  color: rgb(173, 181, 187);
 }
 .remove {
   cursor: pointer;
@@ -74,7 +79,8 @@ export default defineComponent({
   border-radius: 5px;
   padding: 2px;
   height: 1em;
-  width: 3em;
+  width: auto;
   font-size: 0.9em;
+  color: rgb(173, 181, 187);
 }
 </style>

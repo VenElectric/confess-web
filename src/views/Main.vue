@@ -1,68 +1,93 @@
 <template>
-  <div class="bundle">
-    <div v-if="!state.loading" class="loaded">
-      <h2 class="title">
-        <span class="titlespan">{{ state.feed_list[state.count].title }}</span>
-      </h2>
-      <div class="content">
-        <div class="ctext">{{ state.feed_list[state.count].text }}</div>
-      </div>
-      <div class="button_cage">
-        <button @click="confess_prev" class="btns">Previous</button>
-        <button @click="confess_next" class="btns">Next</button>
+  <div v-if="!state.loading" @touchstart="touchStart">
+    <div class="content-cage">
+      <ul style="padding-left: 28px">
+        <li
+          v-for="(item, index) in state.feed_list"
+          :key="index"
+          :style="listPosition()"
+          class="list-item"
+        >
+          <ConfessItem
+            :active="index == state.count"
+            :feedItem="item"
+          ></ConfessItem>
+        </li>
+      </ul>
+    </div>
+    <div class="tag-search-outer">
+      <div class="tag-search">
+        <h3>Tag Search</h3>
+        <input type="text" @change="tagSearch" v-model="state.tag" />
       </div>
     </div>
-    <div v-else class="loading">Loading...</div>
   </div>
+  <div v-else class="loading">Loading...</div>
 </template>
 
 <script lang="ts">
 import { defineComponent, reactive } from "vue";
 import { IConfess } from "../interfaces/IConfess";
 import axios from "axios";
+import ConfessItem from "../components/ConfessItem.vue";
 
 export default defineComponent({
   name: "Main",
+  components: { ConfessItem },
   setup() {
     const state = reactive({
       count: 0,
       page: 1,
       feed_list: [] as IConfess[],
       loading: true,
+      tag: "",
     });
 
     const db_url = `http://localhost:3000/confessions`;
     const page_limit = "10";
 
-    async function confess_prev() {
+    function touchStart(touchEvent: TouchEvent) {
+      if (touchEvent.changedTouches.length !== 1) {
+        // We only care if one finger is used
+        return;
+      }
+      const posXStart = touchEvent.changedTouches[0].clientX;
+      addEventListener(
+        "touchend",
+        (event: TouchEvent) => touchEnd(event, posXStart),
+        { once: true }
+      );
+    }
+    function touchEnd(touchEvent: TouchEvent, posXStart: any) {
+      if (touchEvent.changedTouches.length !== 1) {
+        // We only care if one finger is used
+        return;
+      }
+      const posXEnd = touchEvent.changedTouches[0].clientX;
+      if (posXStart < posXEnd) {
+        confess_previous(); // swipe right
+      } else if (posXStart > posXEnd) {
+        confess_next(); // swipe left
+      }
+    }
+
+    async function confess_previous() {
       if (state.count == 0) {
         alert("You can not go back.");
       }
       if (state.count > 0) {
         state.count -= 1;
       }
-      if (state.count == 0 && state.page > 1) {
-        try {
-          state.loading = true;
-          state.page -= 1;
-          let confession = await confess_get(
-            db_url,
-            String(state.page),
-            page_limit
-          );
-
-          state.feed_list.unshift(...confession.data);
-          state.loading = false;
-          state.count = 10;
-        } catch (error) {
-          console.warn(error);
-        }
-      }
     }
     async function confess_next() {
-      if ((state.count + 1) % 10 == 0) {
+      console.log(state.count);
+      state.count += 1;
+      if (state.feed_list.length == state.count) {
+        alert("Reached End of Results");
+        return;
+      }
+      if ((state.count + 2) % 10 == 0) {
         try {
-          state.loading = true;
           state.page += 1;
           let confession = await confess_get(
             db_url,
@@ -70,24 +95,43 @@ export default defineComponent({
             page_limit
           );
           state.feed_list.push(...confession.data);
-          if ((state.count + 1) % 30 == 0) {
-            state.feed_list = state.feed_list.slice(10, -1);
-            state.count -= 10;
-          } else {
-            state.count += 1;
-          }
-
-          state.loading = false;
         } catch (error) {
-          console.warn(error);
+          alert("Reached End of Results");
         }
       } else {
-        state.count += 1;
+        console.log(state.count + "counting");
       }
     }
 
-    function confess_get(url: string, page: string, limit: string) {
-      return axios.get(`${url}?_page=${page}&limit=${limit}`);
+    async function tagSearch() {
+      let confess_one = await confess_get(
+        db_url,
+        String(state.page),
+        page_limit,
+        state.tag
+      );
+      state.feed_list = [...confess_one.data];
+      state.count = 0;
+    }
+
+    function confess_get(
+      url: string,
+      page: string,
+      limit: string,
+      tag?: string
+    ) {
+      try {
+        if (tag) {
+          return axios.get(
+            `${url}?tags_like=${tag}&_page=${page}&limit=${limit}`
+          );
+        } else {
+          return axios.get(`${url}?_page=${page}&limit=${limit}`);
+        }
+      } catch (error) {
+        console.log("");
+        throw Error("There was an error");
+      }
     }
 
     async function initialize() {
@@ -100,61 +144,75 @@ export default defineComponent({
       state.loading = false;
     }
 
+    function listLength() {
+      return { width: state.feed_list.length * 100 + "%" };
+    }
+    function listPosition() {
+      if (state.feed_list.length == state.count) {
+        state.count = 0;
+        return { transform: "translateX(-" + state.count * 100 + "%)" };
+      } else {
+        return { transform: "translateX(-" + state.count * 100 + "%)" };
+      }
+    }
+
     initialize();
 
-    return { state, confess_next, confess_prev };
+    console.log(state.count);
+
+    return {
+      state,
+      confess_next,
+      confess_previous,
+      touchStart,
+      touchEnd,
+      tagSearch,
+      listLength,
+      listPosition,
+    };
   },
 });
 </script>
 
-<style scoped>
-.bundle {
-  display: grid;
-  align-items: center;
+<style>
+.tag-search-outer {
+  display: flex;
   justify-content: center;
-  justify-items: center;
-  grid-template-columns: 20vw;
+  width: 100%;
+  margin-top: auto;
+  margin-bottom: 0;
 }
-.loaded {
-  height: 18vw;
-  width: 30vw;
+.tag-search {
+  width: 80vw;
   box-shadow: 0 0 0 5px rgba(0, 191, 255, 0.637),
     0 0 0 10px rgba(0, 190, 255, 0.2);
   border-radius: 10px;
-  padding: 5px;
   background-image: linear-gradient(
     to bottom,
     rgba(60, 183, 214, 0.466),
     rgba(40, 214, 199, 0)
   );
-}
-.title {
-  align-content: center;
-  justify-content: center;
-}
-.titlespan {
-  width: 10vw;
   padding: 5px;
 }
-.ctext {
-  vertical-align: middle;
-  height: 10vw;
-  width: 30vw;
-  border-radius: 10%;
+.tag-search > input {
+  background: rgb(48, 61, 83);
+  border: none;
+  outline: none;
+  border-radius: 5px;
+  padding: 5px;
+  color: rgb(173, 181, 187);
 }
-.button_cage {
-  position: sticky;
-  align-content: end;
-  margin-top: 20px;
+.content-cage {
+  height: 70vh;
 }
-.btns {
-  box-shadow: 0 0 0 1px rgba(0, 191, 255, 0.212);
-  transition: box-shadow 0.2s ease;
-  text-decoration: none;
-  display: inline-block;
-  margin: 5px;
+.content-cage > ul {
+  list-style: none;
+  display: flex;
 }
-.btns:hover {
-  box-shadow: 0 0 0 3px rgba(0, 191, 255, 0.637);
+.list-item {
+  display: flex;
+  justify-content: center;
+  padding: 15px;
+  transition: all 0.5s ease;
 }
 </style>

@@ -13,30 +13,26 @@ const lorem = new LoremIpsum({
   },
 });
 
+let tags = [];
+
 let json_users = [];
 let final_json = [];
 
-for (let x = 0; x < 20; x++) {
+for (let x = 0; x < 10; x++) {
   let user_stories = Math.floor(Math.random() * 10);
-  let user_confess = [];
 
   for (let y = 0; y < user_stories; y++) {
+    let numberoftags = Math.floor(Math.random() * 10);
     let output = {
       id: uuidv4(),
       title: lorem.generateWords(2),
       text: lorem.generateSentences(Math.floor(Math.random() * 6)),
+      tags: lorem.generateWords(numberoftags).split(" "),
     };
-    user_confess.push(output);
     final_json.push(output);
   }
-
-  json_users.push({
-    id: uuidv4(),
-    confessions: [...user_confess],
-  });
 }
 let finaldb = [];
-finaldb.push({ users: [...json_users] });
 finaldb.push({ confessions: [...final_json] });
 
 const content = JSON.stringify(finaldb, null, 4);

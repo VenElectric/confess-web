@@ -2,6 +2,7 @@ export interface IConfess {
   id: string;
   title: string;
   text: string;
+  tags: string[];
 }
 
 export interface IGet {

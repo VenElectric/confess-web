@@ -1,11 +1,13 @@
 <template>
-  <div>V-for through this user-ids confessions</div>
+  <div>This is the desktop version</div>
 </template>
-
 <script lang="ts">
 import { defineComponent } from "vue";
 
 export default defineComponent({
-  name: "MyConfessions",
+  name: "Desktop",
+  setup() {
+    console.log("test");
+  },
 });
 </script>
