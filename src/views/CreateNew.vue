@@ -30,6 +30,7 @@ import { defineComponent, reactive } from "vue";
 import { v4 as uuidv4 } from "uuid";
 import AddTags from "../components/AddTags.vue";
 import axios from "axios";
+import dayjs from "dayjs";
 
 export default defineComponent({
   name: "CreateNew",
@@ -57,6 +58,9 @@ export default defineComponent({
         title: data.title,
         text: data.confession,
         tags: data.tags,
+        likes: 0,
+        dislikes: 0,
+        timestamp: dayjs(),
       };
 
       axios

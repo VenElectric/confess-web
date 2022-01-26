@@ -1,6 +1,7 @@
 import { LoremIpsum } from "lorem-ipsum";
 import fs from "fs";
 import { v4 as uuidv4 } from "uuid";
+import dayjs from "dayjs";
 
 const lorem = new LoremIpsum({
   sentencesPerParagraph: {
@@ -28,6 +29,13 @@ for (let x = 0; x < 10; x++) {
       title: lorem.generateWords(2),
       text: lorem.generateSentences(Math.floor(Math.random() * 6)),
       tags: lorem.generateWords(numberoftags).split(" "),
+      timestamp: dayjs()
+        .date(Math.floor(Math.random() * 30))
+        .hour(Math.floor(Math.random() * 12))
+        .minute(Math.floor(Math.random() * 59))
+        .second(Math.floor(Math.random() * 59)),
+      likes: Math.floor(Math.random() * 100),
+      dislikes: Math.floor(Math.random() * 100),
     };
     final_json.push(output);
   }
@@ -44,3 +52,5 @@ fs.writeFile("db.json", content, "utf8", function (err) {
 
   console.log("The file was saved!");
 });
+
+export {};

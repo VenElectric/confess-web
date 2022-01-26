@@ -3,6 +3,9 @@ export interface IConfess {
   title: string;
   text: string;
   tags: string[];
+  likes: number;
+  dislikes: number;
+  timestamp: string;
 }
 
 export interface IGet {

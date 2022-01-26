@@ -1,9 +1,9 @@
 <template>
   <div v-if="isMobile()">
-    <div id="nav">
+    <!-- <div id="nav">
       <router-link to="/">Confessions</router-link> |
       <router-link to="/createnew">Create New</router-link>
-    </div>
+    </div> -->
     <router-view />
   </div>
   <div v-else>
@@ -16,15 +16,14 @@ import { defineComponent } from "vue";
 import Desktop from "./views/Desktop.vue";
 
 export default defineComponent({
-  components: {
-    Desktop,
-  },
+  components: { Desktop },
   setup() {
     function isMobile() {
       if (screen.width <= 760) {
         return true;
       }
     }
+
     return { isMobile };
   },
 });
@@ -40,6 +39,7 @@ export default defineComponent({
   position: relative;
   padding: 20px 0;
   overflow: hidden;
+  height: 100vh;
 }
 
 #nav {
@@ -56,7 +56,7 @@ export default defineComponent({
 }
 
 body {
-  background: rgb(111, 142, 201);
+  background: #57dfe6;
   width: 100%;
   margin: 0;
   padding: 0;

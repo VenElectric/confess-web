@@ -1,6 +1,6 @@
 <template>
-  <div v-if="!state.loading" @touchstart="touchStart">
-    <div class="content-cage">
+  <div v-if="!state.loading">
+    <div class="content-cage" @touchstart="touchStart">
       <ul style="padding-left: 28px">
         <li
           v-for="(item, index) in state.feed_list"
@@ -15,25 +15,51 @@
         </li>
       </ul>
     </div>
-    <div class="tag-search-outer">
-      <div class="tag-search">
-        <h3>Tag Search</h3>
-        <input type="text" @change="tagSearch" v-model="state.tag" />
-      </div>
-    </div>
+    <Toolbar class="menu-bottom p-flex">
+      <template #start>
+        <Button
+          class="p-button-sm btn-add"
+          icon="pi pi-fw pi-plus"
+          @click="toggle"
+        />
+        <OverlayPanel ref="op"> <CreateNew></CreateNew> </OverlayPanel>
+      </template>
+      <template #end>
+        <InputText
+          label="Tag Search"
+          @change="tagSearch"
+          v-model="state.tag"
+          placeholder="Tag Search"
+          class="tag-input p-inputtext-sm"
+        ></InputText>
+      </template>
+    </Toolbar>
   </div>
   <div v-else class="loading">Loading...</div>
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive } from "vue";
+import { defineComponent, reactive, ref } from "vue";
 import { IConfess } from "../interfaces/IConfess";
 import axios from "axios";
 import ConfessItem from "../components/ConfessItem.vue";
+import Menubar from "primevue/menubar";
+import InputText from "primevue/inputtext";
+import Toolbar from "primevue/toolbar";
+import Button from "primevue/button";
+import OverlayPanel from "primevue/overlaypanel";
+import CreateNew from "./CreateNew.vue";
 
 export default defineComponent({
   name: "Main",
-  components: { ConfessItem },
+  components: {
+    ConfessItem,
+    Toolbar,
+    InputText,
+    Button,
+    OverlayPanel,
+    CreateNew,
+  },
   setup() {
     const state = reactive({
       count: 0,
@@ -42,9 +68,13 @@ export default defineComponent({
       loading: true,
       tag: "",
     });
-
+    const op = ref();
     const db_url = `http://localhost:3000/confessions`;
     const page_limit = "10";
+
+    const toggle = (event: any) => {
+      op.value.toggle(event);
+    };
 
     function touchStart(touchEvent: TouchEvent) {
       if (touchEvent.changedTouches.length !== 1) {
@@ -73,17 +103,15 @@ export default defineComponent({
 
     async function confess_previous() {
       if (state.count == 0) {
-        alert("You can not go back.");
+        return;
       }
       if (state.count > 0) {
         state.count -= 1;
       }
     }
     async function confess_next() {
-      console.log(state.count);
       state.count += 1;
       if (state.feed_list.length == state.count) {
-        alert("Reached End of Results");
         return;
       }
       if ((state.count + 2) % 10 == 0) {
@@ -96,10 +124,10 @@ export default defineComponent({
           );
           state.feed_list.push(...confession.data);
         } catch (error) {
-          alert("Reached End of Results");
+          return;
         }
       } else {
-        console.log(state.count + "counting");
+        return;
       }
     }
 
@@ -114,7 +142,7 @@ export default defineComponent({
       state.count = 0;
     }
 
-    function confess_get(
+    async function confess_get(
       url: string,
       page: string,
       limit: string,
@@ -122,14 +150,15 @@ export default defineComponent({
     ) {
       try {
         if (tag) {
-          return axios.get(
-            `${url}?tags_like=${tag}&_page=${page}&limit=${limit}`
+          return await axios.get(
+            `${url}?_sort=timestamp&_order=asc&tags_like=${tag}&_page=${page}&limit=${limit}`
           );
         } else {
-          return axios.get(`${url}?_page=${page}&limit=${limit}`);
+          return await axios.get(
+            `${url}?_sort=timestamp&_order=asc&_page=${page}&limit=${limit}`
+          );
         }
       } catch (error) {
-        console.log("");
         throw Error("There was an error");
       }
     }
@@ -158,17 +187,14 @@ export default defineComponent({
 
     initialize();
 
-    console.log(state.count);
-
     return {
       state,
-      confess_next,
-      confess_previous,
       touchStart,
-      touchEnd,
       tagSearch,
       listLength,
       listPosition,
+      op,
+      toggle,
     };
   },
 });
@@ -203,7 +229,9 @@ export default defineComponent({
   color: rgb(173, 181, 187);
 }
 .content-cage {
-  height: 70vh;
+  height: 87vh;
+  display: flex;
+  align-items: center;
 }
 .content-cage > ul {
   list-style: none;
@@ -214,5 +242,42 @@ export default defineComponent({
   justify-content: center;
   padding: 15px;
   transition: all 0.5s ease;
+}
+.menu-bottom {
+  position: absolute;
+  width: 100%;
+  bottom: 0px;
+}
+.btn-home {
+  float: left;
+  margin-left: 0;
+  margin-right: auto;
+}
+.btn-add {
+  float: right;
+  margin-left: auto;
+  margin-right: 0;
+}
+.tag-input {
+  float: right;
+  margin-right: 0;
+}
+.p-toolbar-group-right {
+  float: right;
+  margin-right: 0;
+  margin-left: auto;
+}
+.p-toolbar-group-left {
+  float: right;
+  margin-right: 0;
+  width: 50%;
+}
+.p-toolbar {
+  justify-content: revert;
+  padding: 0.5em;
+}
+.p-overlaypanel {
+  background-color: #57dfe6 !important;
+  border: 2px solid black !important;
 }
 </style>
