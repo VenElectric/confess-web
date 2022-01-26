@@ -199,7 +199,7 @@ export default defineComponent({
   justify-content: space-evenly;
 }
 .like {
-  border: 2px solid rgb(82, 205, 236);
+  border: 2px solid rgb(8, 107, 236);
   border-radius: 40%;
 }
 .none-display {
@@ -207,7 +207,7 @@ export default defineComponent({
   border-radius: 40%;
 }
 .dislike {
-  border: 2px solid rgb(250, 158, 158);
+  border: 2px solid rgb(243, 51, 51);
   border-radius: 40%;
 }
 </style>
